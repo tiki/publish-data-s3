@@ -13,8 +13,11 @@ pub struct Client {
 }
 
 impl Client {
-    pub async fn new(region: aws_sdk_s3::config::Region) -> Self {
-        let config = from_env().region(region).load().await;
+    pub async fn new(region: &str) -> Self {
+        let config = from_env()
+            .region(aws_sdk_s3::config::Region::new(String::from(region)))
+            .load()
+            .await;
         Client { s3: aws_sdk_s3::Client::new(&config) }
     }
 
