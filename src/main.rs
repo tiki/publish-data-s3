@@ -4,7 +4,6 @@
  */
 
 mod handler;
-mod reader;
 
 use lambda_runtime::{run, service_fn, Error};
 
@@ -16,6 +15,5 @@ async fn main() -> Result<(), Error> {
         .without_time()
         .init();
 
-    run(service_fn(handler::handle)).await;
-    Ok(())
+    run(service_fn(handler::handle)).await
 }

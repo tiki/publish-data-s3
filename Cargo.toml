@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 serde = "1.0.188"
+serde_json = "1.0.105"
 tokio = { version = "1.32.0", features = ["macros", "io-util"] }
 tokio-util = "0.7.8"
 tracing = { version = "0.1.37", features = ["log"] }
@@ -17,7 +18,10 @@ async-compression = { version = "0.4.2", features = ["tokio", "gzip"] }
 bytes = "1.5.0"
 csv = "1.2.2"
 async-trait = "0.1.73"
-tiki-private-ingest = { git = "https://github.com/tiki/private", tag = "ingest/0.2.1", features = ["dummy"]  }
+#tiki-private-ingest = { git = "https://github.com/tiki/private", tag = "ingest/0.2.1", features = ["dummy"]  }
+tiki-private-ingest = { path = "../../private/ingest", features = ["attain_user"]  }
+apache-avro = { version = "0.15.0", features = ["snappy"] }
+futures = "0.3.28"
 
 [dev-dependencies]
 tokio-test = "0.4.3"
