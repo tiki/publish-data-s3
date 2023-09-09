@@ -19,13 +19,7 @@ pub async fn handle(event: LambdaEvent<SqsEventObj<S3Event>>) -> Result<(), Erro
     let client = Client::new("us-east-2").await;
     let schema = avro_schema();
     for record in &event.payload.records {
-        let mut stream = client
-            .read(
-                "mytiki-staging-attain",
-                "weekly_delivery/2023/8/29/tiki_user_demo_2023-08-21.csv.gz",
-            )
-            .await
-            .unwrap();
+        let mut stream = client.read("", "").await.unwrap();
 
         stream
             .from("gzip")
