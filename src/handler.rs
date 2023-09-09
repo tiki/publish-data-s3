@@ -8,7 +8,7 @@ use aws_lambda_events::{event::sqs::SqsEventObj, s3::S3Event};
 use crate::reader::{client::Client, decompress::Decompress, batch::Batch};
 use tiki_private_ingest::schema::Schema;
 
-pub async fn handle(/*event: LambdaEvent<SqsEventObj<S3Event>>*/) -> Result<(), Error> {
+pub async fn handle(event: LambdaEvent<SqsEventObj<S3Event>>) -> Result<(), Error> {
     //for record in &event.payload.records {}
 
     let client = Client::new("us-east-2").await;
@@ -23,14 +23,4 @@ pub async fn handle(/*event: LambdaEvent<SqsEventObj<S3Event>>*/) -> Result<(), 
     }).await;
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::handler;
-
-    #[tokio::test]
-    async fn response_is_good_for_simple_input() {
-        handler::handle().await;
-    }
 }

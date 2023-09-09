@@ -16,6 +16,6 @@ async fn main() -> Result<(), Error> {
         .without_time()
         .init();
 
-    //run(service_fn(handler::handle)).await;
+    run(service_fn(handler::handle)).await;
     Ok(())
 }
