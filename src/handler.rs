@@ -10,10 +10,10 @@ use apache_avro;
 use aws_lambda_events::{event::sqs::SqsEventObj, s3::S3Event};
 use client::Client;
 use file_utils::{batch::Batch, decompress::Decompress};
-use futures::future;
-use futures::FutureExt;
+use futures::{future, FutureExt};
 use lambda_runtime::{Error, LambdaEvent};
 use tiki_private_ingest::schema::generic::{avro_schema, Record};
+use tokio::io::AsyncBufReadExt;
 
 pub async fn handle(event: LambdaEvent<SqsEventObj<S3Event>>) -> Result<(), Error> {
     let client = Client::new("us-east-2").await;
@@ -28,8 +28,9 @@ pub async fn handle(event: LambdaEvent<SqsEventObj<S3Event>>) -> Result<(), Erro
             .unwrap();
 
         stream
-            .gzip()
-            .process_csv(10000, |records: Vec<Record>| {
+            .from("gzip")
+            .lines()
+            .process(10000, "csv", |records: Vec<Record>| {
                 let mut avro = apache_avro::Writer::with_codec(
                     &schema,
                     Vec::new(),

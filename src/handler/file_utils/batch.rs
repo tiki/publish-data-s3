@@ -17,6 +17,13 @@ pub trait Batch<R: AsyncBufRead + Unpin> {
         size: usize,
         processor: F,
     );
+
+    async fn process<'a, T: DeserializeOwned, F: Fn(Vec<T>) -> BoxFuture<'a, ()>>(
+        &mut self,
+        size: usize,
+        format: &str,
+        processor: F,
+    );
 }
 
 #[async_trait(?Send)]
@@ -27,5 +34,19 @@ impl<R: AsyncBufRead + Unpin> Batch<R> for Lines<R> {
         processor: F,
     ) {
         csv::process::<R, T, F>(self, size, processor).await
+    }
+
+    async fn process<'a, T: DeserializeOwned, F: Fn(Vec<T>) -> BoxFuture<'a, ()>>(
+        &mut self,
+        size: usize,
+        format: &str,
+        processor: F,
+    ) {
+        match format {
+            "csv" => csv::process::<R, T, F>(self, size, processor).await,
+            _ => {
+                panic!("Unsupported batch processing format: {}", format);
+            }
+        }
     }
 }
