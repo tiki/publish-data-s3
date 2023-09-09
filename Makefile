@@ -1,13 +1,10 @@
-build:
-	@sed -i -E '/tiki-private-ingest/s/features = \[[^]]*\]/features = \["$(schema)"\]/' Cargo.toml
-	@cargo build
-	mv Cargo.toml-E Cargo.toml
+THIS_FILE := $(lastword $(MAKEFILE_LIST))
 
-test:
-	@sed -i -E '/tiki-private-ingest/s/features = \[[^]]*\]/features = \["$(schema)"\]/' Cargo.toml
-	@cargo test
-	mv Cargo.toml-E Cargo.toml
+build:
+	@$(MAKE) -f $(THIS_FILE) clean
+	@mkdir out && cp -r src out/src
+	@sed -E '/tiki-private-ingest/s/features = \[[^]]*\]/features = \["$(schema)"\]/' < Cargo.toml > out/Cargo.toml
+	@cargo build --manifest-path out/Cargo.toml
 
 clean:
-	rm Cargo.toml-E
-	rm -rf target
+	rm -rf out
