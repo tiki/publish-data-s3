@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Ingest - S3 Shared Infrastructure
+Parameters:
+  BucketName:
+    Type: String
+    Description: Enter the S3 bucket name for staging.
+Resources:
+  Queue:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: Queue/template.yaml
+      Parameters:
+        QueueName: ingest-s3
+        BucketName:
+          Ref: BucketName
+    Metadata:
+      SamResourceId: Queue
+  Bucket:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: Bucket/template.yaml
+      Parameters:
+        BucketName:
+          Ref: BucketName
+        QueueArn:
+          Fn::GetAtt:
+          - Queue
+          - Outputs.Arn
+    Metadata:
+      SamResourceId: Bucket

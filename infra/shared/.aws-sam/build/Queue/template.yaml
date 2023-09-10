@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Ingest - S3 SQS Queue
+Parameters:
+  QueueName:
+    Type: String
+    Default: ingest-s3
+    Description: The name of the s3 notifications Queue.
+  BucketName:
+    Type: String
+    Description: The name the bucket to allow messages from.
+Resources:
+  Queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName:
+        Ref: QueueName
+  QueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: s3.amazonaws.com
+          Action: SQS:SendMessage
+          Resource:
+            Fn::GetAtt:
+            - Queue
+            - Arn
+          Condition:
+            ArnLike:
+              aws:SourceArn:
+                Fn::Sub: arn:aws:s3:::${BucketName}
+            StringEquals:
+              aws:SourceAccount:
+                Ref: AWS::AccountId
+      Queues:
+      - Ref: Queue
+Outputs:
+  Arn:
+    Value:
+      Fn::GetAtt:
+      - Queue
+      - Arn

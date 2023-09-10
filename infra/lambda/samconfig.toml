@@ -1,0 +1,24 @@
+version = 0.1
+
+[default.global.parameters]
+s3_bucket = "mytiki-sam-deploy"
+s3_prefix = "ingest/s3/lambda"
+region = "us-east-2"
+
+[default.deploy.parameters]
+confirm_changeset = false
+capabilities = [
+    "CAPABILITY_IAM",
+    "CAPABILITY_AUTO_EXPAND"
+]
+image_repositories = []
+parameter_overrides = [
+    "QueueArn=__QUEUE_ARN__",
+    "V1=__V1__"
+]
+
+[default.build.parameters]
+beta_features = true
+
+[default.sync.parameters]
+beta_features = true

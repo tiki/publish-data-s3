@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Ingest - S3 SLambda
+
+Parameters:
+  QueueArn:
+    Description: Arn for the SQSEvent Queue
+    Type: String
+  KeyPrefix:
+    Type: String
+    Description: The name of the key prefix to process events for.
+#  V1:
+#    Type: String
+#    Description: Enter the env var1.
+
+Resources:
+  Function:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: rust-cargolambda
+    Properties:
+      CodeUri: ..
+      Handler: bootstrap
+      Runtime: provided.al2
+    MemorySize: 512
+    Timeout: 20
+    Architectures:
+      - arm64
+    Events:
+      SQSEvent:
+        Type: SQS
+        Properties:
+          Enabled: true
+          FunctionResponseTypes:
+            - ReportBatchItemFailures
+          BatchSize: 10
+          Queue: !Ref QueueArn
+          FilterCriteria:
+            Filters:
+              - Pattern: !Sub "{ \"body\" : { \"s3\" : { \"key\" : [ { \"prefix\": \"${KeyPrefix}/\" } ] } } }"
+#    Environment:
+#      Variables:
+#        V1: !Ref V1
+
