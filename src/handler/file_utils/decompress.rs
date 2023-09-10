@@ -9,9 +9,15 @@ use bytes::Bytes;
 use tokio::io::{AsyncBufRead, AsyncBufReadExt, BufReader, Lines};
 use tokio_util::io::StreamReader;
 
+#[derive(Debug, Copy, Clone)]
+pub enum Compression {
+    GZip,
+    None,
+}
+
 pub trait Decompress {
     fn gzip(&mut self) -> Lines<BufReader<GzipDecoder<&mut StreamReader<ByteStream, Bytes>>>>;
-    fn from<'a>(&'a mut self, format: &str) -> Box<dyn AsyncBufRead + Unpin + 'a>;
+    fn from<'a>(&'a mut self, format: Compression) -> Box<dyn AsyncBufRead + Unpin + 'a>;
 }
 
 impl Decompress for StreamReader<ByteStream, Bytes> {
@@ -19,12 +25,10 @@ impl Decompress for StreamReader<ByteStream, Bytes> {
         BufReader::new(GzipDecoder::new(self)).lines()
     }
 
-    fn from<'a>(&'a mut self, format: &str) -> Box<dyn AsyncBufRead + Unpin + 'a> {
+    fn from<'a>(&'a mut self, format: Compression) -> Box<dyn AsyncBufRead + Unpin + 'a> {
         match format {
-            "gzip" => Box::new(BufReader::new(GzipDecoder::new(self))),
-            _ => {
-                panic!("Unsupported decompression format: {}", format);
-            }
+            Compression::GZip => Box::new(BufReader::new(GzipDecoder::new(self))),
+            Compression::None => Box::new(BufReader::new(self)),
         }
     }
 }

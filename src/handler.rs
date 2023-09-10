@@ -4,57 +4,41 @@
  */
 
 mod client;
+mod config;
 mod file_utils;
+mod processor;
 
-use apache_avro;
 use aws_lambda_events::{event::sqs::SqsEventObj, s3::S3Event};
-use client::Client;
-use file_utils::{batch::Batch, decompress::Decompress};
-use futures::{future, FutureExt};
 use lambda_runtime::{Error, LambdaEvent};
-use tiki_private_ingest::schema::generic::{avro_schema, Record};
-use tokio::io::AsyncBufReadExt;
+use processor::Processor;
 
 pub async fn handle(event: LambdaEvent<SqsEventObj<S3Event>>) -> Result<(), Error> {
-    let client = Client::new("us-east-2").await;
-    let schema = avro_schema();
+    let processor = &Processor::new()
+        .from_env()
+        .auto_schema()
+        .for_region("us-east-2")
+        .await;
+
     for record in &event.payload.records {
-        let mut stream = client.read("", "").await.unwrap();
-
-        stream
-            .from("gzip")
-            .lines()
-            .process(10000, "csv", |records: Vec<Record>| {
-                let mut avro = apache_avro::Writer::with_codec(
-                    &schema,
-                    Vec::new(),
-                    apache_avro::Codec::Snappy,
-                );
-                for record in records {
-                    match avro.append_ser(record) {
-                        Ok(_) => { /*do nothing*/ }
-                        Err(error) => {
-                            tracing::warn!(?error, "Avro serialization failed. Skipping.");
-                        }
-                    }
+        for s3_record in &record.body.records {
+            if s3_record.s3.bucket.name.is_none() || s3_record.s3.object.key.is_none() {
+                tracing::error!("Invalid payload - no s3 bucket or key. Skipping");
+            } else {
+                let stream = processor
+                    .client
+                    .as_ref()
+                    .expect("Client not initialized.")
+                    .read(
+                        s3_record.s3.bucket.name.as_ref().unwrap().to_string(),
+                        s3_record.s3.object.key.as_ref().unwrap().to_string(),
+                    )
+                    .await;
+                if let Ok(stream) = stream {
+                    processor.process(stream).await;
                 }
-                match avro.into_inner() {
-                    Ok(binary) => Box::pin(client.write("", "", binary).then(|res| match res {
-                        Ok(_) => future::ready(()),
-                        Err(error) => {
-                            tracing::error!(?error, "Failed to write avro");
-                            future::ready(())
-                        }
-                    })),
-                    Err(error) => {
-                        tracing::error!(?error, "Failed to serialize avro");
-                        Box::pin(future::ready(()))
-                    }
-                }
-            })
-            .await;
+            }
+        }
     }
-
     Ok(())
 }
 

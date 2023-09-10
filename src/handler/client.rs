@@ -26,8 +26,8 @@ impl Client {
 
     pub async fn read(
         &self,
-        bucket: &str,
-        key: &str,
+        bucket: String,
+        key: String,
     ) -> Result<StreamReader<aws_sdk_s3::primitives::ByteStream, Bytes>, Box<dyn Error>> {
         let res = self.s3.get_object().bucket(bucket).key(key).send().await?;
         Ok(StreamReader::new(res.body))
@@ -35,8 +35,8 @@ impl Client {
 
     pub async fn write(
         &self,
-        bucket: &str,
-        key: &str,
+        bucket: String,
+        key: String,
         body: Vec<u8>,
     ) -> Result<aws_sdk_s3::operation::put_object::PutObjectOutput, Box<dyn Error>> {
         let res = self

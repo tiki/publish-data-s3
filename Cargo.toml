@@ -21,6 +21,7 @@ async-trait = "0.1.73"
 tiki-private-ingest = { git = "https://github.com/tiki/private", tag = "ingest/0.3.0", features = ["dummy"]  }
 apache-avro = { version = "0.15.0", features = ["snappy"] }
 futures = "0.3.28"
+uuid = { version = "1.4.1", features = ["v4"] }
 
 [dev-dependencies]
 tokio-test = "0.4.3"

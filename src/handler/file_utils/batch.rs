@@ -10,6 +10,11 @@ use futures::future::BoxFuture;
 use serde::de::DeserializeOwned;
 use tokio::io::{AsyncBufRead, Lines};
 
+#[derive(Debug, Copy, Clone)]
+pub enum FileFormat {
+    CSV,
+}
+
 #[async_trait(?Send)]
 pub trait Batch<R: AsyncBufRead + Unpin> {
     async fn process_csv<'a, T: DeserializeOwned, F: Fn(Vec<T>) -> BoxFuture<'a, ()>>(
@@ -21,7 +26,7 @@ pub trait Batch<R: AsyncBufRead + Unpin> {
     async fn process<'a, T: DeserializeOwned, F: Fn(Vec<T>) -> BoxFuture<'a, ()>>(
         &mut self,
         size: usize,
-        format: &str,
+        format: FileFormat,
         processor: F,
     );
 }
@@ -39,14 +44,11 @@ impl<R: AsyncBufRead + Unpin> Batch<R> for Lines<R> {
     async fn process<'a, T: DeserializeOwned, F: Fn(Vec<T>) -> BoxFuture<'a, ()>>(
         &mut self,
         size: usize,
-        format: &str,
+        format: FileFormat,
         processor: F,
     ) {
         match format {
-            "csv" => csv::process::<R, T, F>(self, size, processor).await,
-            _ => {
-                panic!("Unsupported batch processing format: {}", format);
-            }
+            FileFormat::CSV => csv::process::<R, T, F>(self, size, processor).await,
         }
     }
 }
