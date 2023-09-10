@@ -1,0 +1,4 @@
+[env]
+TIKI_BUCKET = "test-bucket"
+TIKI_TABLE = "test-table"
+TIKI_FILE_TYPE = "csv"

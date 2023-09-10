@@ -9,9 +9,19 @@ Parameters:
   KeyPrefix:
     Type: String
     Description: The name of the key prefix to process events for.
-#  V1:
-#    Type: String
-#    Description: Enter the env var1.
+  BucketName:
+    Type: String
+    Description: Enter the destination bucket.
+  TableName:
+    Type: String
+    Description: Enter the destination table name.
+  FileType:
+    Type: String
+    Description: Enter the source file type (csv).
+  Compression:
+    Type: String
+    Default: none
+    Description: Enter the source file compression (gzip, none).
 
 Resources:
   Function:
@@ -38,7 +48,11 @@ Resources:
           FilterCriteria:
             Filters:
               - Pattern: !Sub "{ \"body\" : { \"s3\" : { \"key\" : [ { \"prefix\": \"${KeyPrefix}/\" } ] } } }"
-#    Environment:
-#      Variables:
-#        V1: !Ref V1
+    Environment:
+      Variables:
+        TIKI_REGION: !Ref AWS::Region
+        TIKI_BUCKET: !Ref BucketName
+        TIKI_TABLE: !Ref TableName
+        TIKI_FILE_TYPE: !Ref FileType
+        TIKI_COMPRESSION: !Ref Compression
 

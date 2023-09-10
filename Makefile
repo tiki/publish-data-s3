@@ -13,4 +13,4 @@ clean:
 	rm -rf out
 
 deploy:
-	@cd out/infra && sam build && sam package && sam deploy --stack-name ingest-s3-$(schema)
+	@cd out/infra && sam build && sam package && sam deploy --stack-name ingest-s3-$(schema) --parameter-overrides QueueArn=$(queue) KeyPrefix=$(filter) BucketName=$(bucket) TableName=$(table) FileType=$(type) Compression=$(compression)

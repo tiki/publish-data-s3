@@ -15,6 +15,7 @@ pub struct Config {
     pub region: String,
 }
 
+#[allow(unused)]
 impl Config {
     pub fn default() -> Self {
         Config {
@@ -41,8 +42,8 @@ impl Config {
         self
     }
 
-    pub fn with_file_type(mut self, fileType: FileFormat) -> Self {
-        self.file_type = fileType;
+    pub fn with_file_type(mut self, file_type: FileFormat) -> Self {
+        self.file_type = file_type;
         self
     }
 
@@ -58,6 +59,7 @@ impl Config {
         let compression = match env::var("TIKI_COMPRESSION") {
             Ok(compression) => match compression.as_str() {
                 "gzip" => Compression::GZip,
+                "none" => Compression::None,
                 _ => Compression::None,
             },
             Err(_) => Compression::None,
@@ -67,8 +69,8 @@ impl Config {
             Err(_) => String::from("us-east-2"),
         };
         Config {
-            bucket: bucket,
-            table: table,
+            bucket: String::from(bucket),
+            table: String::from(table),
             compression: compression,
             region: region,
             file_type: match file_type {
