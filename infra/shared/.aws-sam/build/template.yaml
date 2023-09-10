@@ -11,7 +11,7 @@ Resources:
     Properties:
       Location: Queue/template.yaml
       Parameters:
-        QueueName: ingest-s3
+        QueueName: ingest-raw
         BucketName:
           Ref: BucketName
     Metadata:

@@ -1,15 +1,15 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Ingest - S3 SLambda
+Description: Ingest - S3 Lambda
 
 Parameters:
   QueueArn:
     Description: Arn for the SQSEvent Queue
     Type: String
-  KeyPrefix:
+  SourceBucket:
     Type: String
-    Description: The name of the key prefix to process events for.
-  BucketName:
+    Description: Enter the source bucket.
+  DestinationBucket:
     Type: String
     Description: Enter the destination bucket.
   TableName:
@@ -32,27 +32,28 @@ Resources:
       CodeUri: ..
       Handler: bootstrap
       Runtime: provided.al2
-    MemorySize: 512
-    Timeout: 20
-    Architectures:
-      - arm64
-    Events:
-      SQSEvent:
-        Type: SQS
-        Properties:
-          Enabled: true
-          FunctionResponseTypes:
-            - ReportBatchItemFailures
-          BatchSize: 10
-          Queue: !Ref QueueArn
-          FilterCriteria:
-            Filters:
-              - Pattern: !Sub "{ \"body\" : { \"s3\" : { \"key\" : [ { \"prefix\": \"${KeyPrefix}/\" } ] } } }"
-    Environment:
-      Variables:
-        TIKI_REGION: !Ref AWS::Region
-        TIKI_BUCKET: !Ref BucketName
-        TIKI_TABLE: !Ref TableName
-        TIKI_FILE_TYPE: !Ref FileType
-        TIKI_COMPRESSION: !Ref Compression
-
+      MemorySize: 512
+      Timeout: 20
+      Architectures:
+        - arm64
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Enabled: true
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+            BatchSize: 10
+            Queue: !Ref QueueArn
+      Environment:
+        Variables:
+          TIKI_REGION: !Ref AWS::Region
+          TIKI_BUCKET: !Ref DestinationBucket
+          TIKI_TABLE: !Ref TableName
+          TIKI_FILE_TYPE: !Ref FileType
+          TIKI_COMPRESSION: !Ref Compression
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref SourceBucket
+        - S3CrudPolicy:
+            BucketName: !Ref DestinationBucket

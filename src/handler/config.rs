@@ -53,9 +53,21 @@ impl Config {
     }
 
     pub fn from_env() -> Self {
-        let bucket = env!("TIKI_BUCKET", "Please set TIKI_BUCKET");
-        let table = env!("TIKI_TABLE", "Please set TIKI_TABLE");
-        let file_type = env!("TIKI_FILE_TYPE", "Please set TIKI_FILE_TYPE");
+        let bucket = match env::var("TIKI_BUCKET") {
+            Ok(table) => table,
+            Err(_) => panic!("Please set TIKI_BUCKET"),
+        };
+        let table = match env::var("TIKI_TABLE") {
+            Ok(table) => table,
+            Err(_) => panic!("Please set TIKI_TABLE"),
+        };
+        let file_type = match env::var("TIKI_FILE_TYPE") {
+            Ok(file_type) => match file_type.as_str() {
+                "csv" => FileFormat::CSV,
+                _ => panic!("Unsupported TIKI_FILE_TYPE"),
+            },
+            Err(_) => panic!("Please set TIKI_FILE_TYPE"),
+        };
         let compression = match env::var("TIKI_COMPRESSION") {
             Ok(compression) => match compression.as_str() {
                 "gzip" => Compression::GZip,
@@ -73,10 +85,7 @@ impl Config {
             table: String::from(table),
             compression: compression,
             region: region,
-            file_type: match file_type {
-                "csv" => FileFormat::CSV,
-                _ => panic!("Unsupported TIKI_FILE_TYPE"),
-            },
+            file_type: file_type,
         }
     }
 }

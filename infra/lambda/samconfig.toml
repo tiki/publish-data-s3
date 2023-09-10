@@ -11,11 +11,6 @@ capabilities = [
     "CAPABILITY_IAM",
     "CAPABILITY_AUTO_EXPAND"
 ]
-image_repositories = []
-parameter_overrides = [
-    "QueueArn=__QUEUE_ARN__",
-    "V1=__V1__"
-]
 
 [default.build.parameters]
 beta_features = true
