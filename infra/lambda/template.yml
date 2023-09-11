@@ -22,6 +22,10 @@ Parameters:
     Type: String
     Default: none
     Description: Enter the source file compression (gzip, none).
+  MetadataQueue:
+    Type: String
+    Default: none
+    Description: Enter the name of the Metadata Queue.
 
 Resources:
   Function:
@@ -57,3 +61,5 @@ Resources:
             BucketName: !Ref SourceBucket
         - S3CrudPolicy:
             BucketName: !Ref DestinationBucket
+        - SQSSendMessagePolicy:
+            QueueName: !Ref MetadataQueue

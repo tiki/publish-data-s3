@@ -13,4 +13,4 @@ clean:
 	rm -rf out
 
 deploy:
-	@cd out/infra && sam build && sam package && sam deploy --stack-name ingest-s3-$(shell echo $(schema) | sed 's/_/-/g') --parameter-overrides ParameterKey=QueueArn,ParameterValue=$(queue) ParameterKey=SourceBucket,ParameterValue=$(source) ParameterKey=DestinationBucket,ParameterValue=$(destination) ParameterKey=TableName,ParameterValue=$(schema) ParameterKey=FileType,ParameterValue=$(type) ParameterKey=Compression,ParameterValue=$(compression)
+	@cd out/infra && sam build && sam package && sam deploy --stack-name ingest-s3-$(shell echo $(schema) | sed 's/_/-/g') --parameter-overrides ParameterKey=QueueArn,ParameterValue=$(queue) ParameterKey=SourceBucket,ParameterValue=$(source) ParameterKey=DestinationBucket,ParameterValue=$(destination) ParameterKey=TableName,ParameterValue=$(schema) ParameterKey=FileType,ParameterValue=$(type) ParameterKey=Compression,ParameterValue=$(compression) ParameterKey=MetadataQueue,ParameterValue=$(metadata)
