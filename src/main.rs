@@ -2,7 +2,6 @@
  * Copyright (c) TIKI Inc.
  * MIT license. See LICENSE file in root directory.
  */
-
 mod handler;
 
 use lambda_runtime::{run, service_fn, Error};
@@ -14,6 +13,5 @@ async fn main() -> Result<(), Error> {
         .with_target(false)
         .without_time()
         .init();
-
     run(service_fn(handler::handle)).await
 }

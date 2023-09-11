@@ -1,0 +1,18 @@
+version = 0.1
+
+[default.global.parameters]
+stack_name = "ingest-s3-shared"
+s3_bucket = "mytiki-sam-deploy"
+s3_prefix = "ingest/s3/github"
+region = "us-east-2"
+
+[default.deploy.parameters]
+confirm_changeset = false
+capabilities = [
+    "CAPABILITY_IAM",
+    "CAPABILITY_AUTO_EXPAND"
+]
+image_repositories = []
+parameter_overrides = [
+    "BucketName=mytiki-ingest-staging-raw"
+]

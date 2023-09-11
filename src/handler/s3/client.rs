@@ -5,6 +5,7 @@
 
 use aws_config::from_env;
 use aws_sdk_s3;
+use aws_sdk_s3::types::ObjectAttributes;
 use bytes::Bytes;
 use std::error::Error;
 use tokio_util::io::StreamReader;
@@ -31,6 +32,25 @@ impl Client {
     ) -> Result<StreamReader<aws_sdk_s3::primitives::ByteStream, Bytes>, Box<dyn Error>> {
         let res = self.s3.get_object().bucket(bucket).key(key).send().await?;
         Ok(StreamReader::new(res.body))
+    }
+
+    pub async fn read_metadata(
+        &self,
+        bucket: String,
+        key: String,
+    ) -> Result<
+        aws_sdk_s3::operation::get_object_attributes::GetObjectAttributesOutput,
+        Box<dyn Error>,
+    > {
+        let res = self
+            .s3
+            .get_object_attributes()
+            .bucket(bucket)
+            .key(key)
+            .object_attributes(ObjectAttributes::ObjectSize)
+            .send()
+            .await?;
+        Ok(res)
     }
 
     pub async fn write(
