@@ -3,10 +3,11 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-mod client;
 mod config;
 mod file_utils;
 mod processor;
+mod s3;
+mod sqs;
 
 use aws_lambda_events::{event::sqs::SqsEventObj, s3::S3Event};
 use lambda_runtime::{Error, LambdaEvent};
@@ -25,7 +26,7 @@ pub async fn handle(event: LambdaEvent<SqsEventObj<S3Event>>) -> Result<(), Erro
                 tracing::error!("Invalid payload - no s3 bucket or key. Skipping");
             } else {
                 let stream = processor
-                    .client_guard()
+                    .s3_client_guard()
                     .read(
                         s3_record.s3.bucket.name.as_ref().unwrap().to_string(),
                         s3_record.s3.object.key.as_ref().unwrap().to_string(),
@@ -58,10 +59,14 @@ mod tests {
 
     #[tokio::test]
     async fn local() {
-        env::set_var("TIKI_BUCKET", "mytiki-test");
+        env::set_var("TIKI_BUCKET", "mytiki-cleanroom-sample");
         env::set_var("TIKI_TABLE", "");
         env::set_var("TIKI_FILE_TYPE", "csv");
         env::set_var("TIKI_COMPRESSION", "gzip");
+        env::set_var(
+            "TIKI_QUEUE",
+            "https://sqs.us-east-2.amazonaws.com/254962200554/cleanroom-sample-catalog.fifo",
+        );
 
         let mut context = Context::default();
         context.request_id = Uuid::new_v4().to_string();

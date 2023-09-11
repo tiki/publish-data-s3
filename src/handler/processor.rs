@@ -4,9 +4,10 @@
  */
 
 use crate::handler::{
-    client::Client, config::Config, file_utils::batch::Batch, file_utils::decompress::Decompress,
+    config::Config, file_utils::batch::Batch, file_utils::decompress::Decompress, s3, sqs,
 };
 use bytes::Bytes;
+use futures::future::err;
 use futures::{future, FutureExt};
 use parquet::{
     file::{properties::WriterProperties, writer::SerializedFileWriter},
@@ -21,7 +22,8 @@ use uuid::Uuid;
 
 pub struct Processor {
     pub config: Option<Config>,
-    pub client: Option<Client>,
+    pub s3_client: Option<s3::client::Client>,
+    pub sqs_client: Option<sqs::client::Client>,
     pub schema: Option<Type>,
 }
 
@@ -29,7 +31,8 @@ impl Processor {
     pub fn new() -> Self {
         Processor {
             config: None,
-            client: None,
+            s3_client: None,
+            sqs_client: None,
             schema: None,
         }
     }
@@ -43,13 +46,19 @@ impl Processor {
         self.with_config(Config::from_env())
     }
 
-    pub fn with_client(mut self, client: Client) -> Self {
-        self.client = Some(client);
+    pub fn with_s3_client(mut self, client: s3::client::Client) -> Self {
+        self.s3_client = Some(client);
+        self
+    }
+
+    pub fn with_sqs_client(mut self, client: sqs::client::Client) -> Self {
+        self.sqs_client = Some(client);
         self
     }
 
     pub async fn for_region(self, region: &str) -> Self {
-        self.with_client(Client::new(region).await)
+        self.with_s3_client(s3::client::Client::new(region).await)
+            .with_sqs_client(sqs::client::Client::new(region).await)
     }
 
     pub fn with_schema(mut self, schema: Type) -> Self {
@@ -69,8 +78,12 @@ impl Processor {
         self.schema.as_ref().expect("Schema not declared")
     }
 
-    pub fn client_guard(&self) -> &Client {
-        self.client.as_ref().expect("Client not declared")
+    pub fn s3_client_guard(&self) -> &s3::client::Client {
+        self.s3_client.as_ref().expect("S3 client not declared")
+    }
+
+    pub fn sqs_client_guard(&self) -> &sqs::client::Client {
+        self.sqs_client.as_ref().expect("SQS client not declared")
     }
 
     fn write_parquet(&self, records: Vec<generic::Record>) -> Result<Vec<u8>, Box<dyn Error>> {
@@ -86,11 +99,36 @@ impl Processor {
         Ok(parquet)
     }
 
-    async fn write_s3(&self, binary: Vec<u8>) -> Result<(), Box<dyn Error>> {
+    async fn write_s3(&self, key: String, binary: Vec<u8>) -> Result<(), Box<dyn Error>> {
         let config = self.config_guard();
-        let client = self.client_guard();
-        let key = format!("{}/{}.parquet", config.table, Uuid::new_v4());
+        let client = self.s3_client_guard();
         let _ = client.write(config.bucket.to_string(), key, binary).await?;
+        Ok(())
+    }
+
+    async fn write_sqs(&self, key: String, count: i64) -> Result<(), Box<dyn Error>> {
+        let config = self.config_guard();
+        let file_properties = self
+            .s3_client_guard()
+            .read_metadata(config.bucket.to_string(), key.to_string())
+            .await?;
+        let file_metadata = sqs::file_metadata::FileMetadata::new()
+            .with_table(&config.table)
+            .with_uri(&format!("s3://{}/{}", config.bucket, key.to_string()))
+            .with_size(file_properties.object_size)
+            .with_count(count);
+        let res = self
+            .sqs_client_guard()
+            .write(&config.queue, &file_metadata)
+            .await?;
+        Ok(())
+    }
+
+    async fn write_aws(&self, count: i64, binary: Vec<u8>) -> Result<(), Box<dyn Error>> {
+        let config = self.config_guard();
+        let key = format!("{}/data/{}.parquet", config.table, Uuid::new_v4());
+        self.write_s3(key.to_string(), binary).await?;
+        self.write_sqs(key.to_string(), count).await?;
         Ok(())
     }
 
@@ -102,23 +140,30 @@ impl Processor {
         stream
             .from(config.compression)
             .lines()
-            .process(100000, config.file_type, |records: Vec<generic::Record>| {
-                let parquet = self.write_parquet(records);
-                if parquet.is_err() {
-                    let err = parquet.unwrap_err();
-                    tracing::error!(?err, "Failed to write to parquet.");
-                    return Box::pin(future::ready(()));
-                } else {
-                    let res = self.write_s3(parquet.unwrap());
-                    return Box::pin(res.then(|res| match res {
-                        Ok(_) => future::ready(()),
-                        Err(err) => {
-                            tracing::error!(?err, "Failed to write to s3.");
-                            future::ready(())
+            .process(
+                config.max_rows,
+                config.file_type,
+                |records: Vec<generic::Record>| {
+                    let record_count =
+                        i64::try_from(records.len()).expect("Can't fit usize in i64. Panic!");
+                    let parquet = self.write_parquet(records);
+                    match parquet {
+                        Ok(parquet) => {
+                            Box::pin(self.write_aws(record_count, parquet).then(|res| match res {
+                                Ok(_) => future::ready(()),
+                                Err(err) => {
+                                    tracing::error!(?err, "Failed to write to aws.");
+                                    future::ready(())
+                                }
+                            }))
                         }
-                    }));
-                }
-            })
+                        Err(err) => {
+                            tracing::error!(?err, "Failed to write to parquet.");
+                            Box::pin(future::ready(()))
+                        }
+                    }
+                },
+            )
             .await;
     }
 }

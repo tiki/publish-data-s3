@@ -4,6 +4,7 @@
  */
 
 use crate::handler::file_utils::{batch::FileFormat, decompress::Compression};
+use serde_json::from_str;
 use std::env;
 
 #[derive(Debug, Clone)]
@@ -13,6 +14,8 @@ pub struct Config {
     pub compression: Compression,
     pub file_type: FileFormat,
     pub region: String,
+    pub queue: String,
+    pub max_rows: usize,
 }
 
 #[allow(unused)]
@@ -24,6 +27,8 @@ impl Config {
             compression: Compression::None,
             file_type: FileFormat::CSV,
             region: String::from("us-east-2"),
+            queue: String::new(),
+            max_rows: 100000,
         }
     }
 
@@ -52,6 +57,16 @@ impl Config {
         self
     }
 
+    pub fn with_queue(mut self, queue: &str) -> Self {
+        self.queue = String::from(queue);
+        self
+    }
+
+    pub fn with_max_rows(mut self, max_rows: usize) -> Self {
+        self.max_rows = max_rows;
+        self
+    }
+
     pub fn from_env() -> Self {
         let bucket = match env::var("TIKI_BUCKET") {
             Ok(table) => table,
@@ -60,6 +75,10 @@ impl Config {
         let table = match env::var("TIKI_TABLE") {
             Ok(table) => table,
             Err(_) => panic!("Please set TIKI_TABLE"),
+        };
+        let queue = match env::var("TIKI_QUEUE") {
+            Ok(queue) => queue,
+            Err(_) => panic!("Please set TIKI_QUEUE"),
         };
         let file_type = match env::var("TIKI_FILE_TYPE") {
             Ok(file_type) => match file_type.as_str() {
@@ -80,12 +99,24 @@ impl Config {
             Ok(region) => region,
             Err(_) => String::from("us-east-2"),
         };
+        let max_rows = match env::var("TIKI_MAX_ROWS") {
+            Ok(max_rows) => {
+                let res = from_str::<usize>(&max_rows);
+                match res {
+                    Ok(max_rows) => max_rows,
+                    Err(err) => 100000,
+                }
+            }
+            Err(_) => 100000,
+        };
         Config {
             bucket: String::from(bucket),
             table: String::from(table),
             compression: compression,
             region: region,
             file_type: file_type,
+            queue: queue,
+            max_rows: max_rows,
         }
     }
 }
