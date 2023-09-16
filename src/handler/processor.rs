@@ -7,7 +7,6 @@ use crate::handler::{
     config::Config, file_utils::batch::Batch, file_utils::decompress::Decompress, s3, sqs,
 };
 use bytes::Bytes;
-use futures::future::err;
 use futures::{future, FutureExt};
 use parquet::{
     file::{properties::WriterProperties, writer::SerializedFileWriter},
@@ -117,7 +116,7 @@ impl Processor {
             .with_uri(&format!("s3://{}/{}", config.bucket, key.to_string()))
             .with_size(file_properties.object_size)
             .with_count(count);
-        let res = self
+        let _ = self
             .sqs_client_guard()
             .write(&config.queue, &file_metadata)
             .await?;
