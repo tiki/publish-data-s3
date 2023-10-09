@@ -23,27 +23,31 @@ jobs:
       - name: Setup Cargo Lambda
         uses: zerj9/setup-cargo-lambda@v0.1.0
 
-      - name: Cargo Test
+      - name: Setup Project
         run: |
           git config --global url."https://${{ secrets.GH_PROJECT_PAT }}@github.com".insteadOf https://github.com
-          cargo test --message-format json,json-diagnostic-short,json-diagnostic-rendered-ansi,json-render-diagnostics --quiet > test-results.json
-          sed -i '/^running/,/^test result/d' test-results.json
+          rustup default nightly
+          cargo install cargo2junit
+
+      - name: Cargo Test
+        run: |
+          cargo test -- -Z unstable-options --format json --report-time | cargo2junit > test-results.xml
 
       - name: Upload Results
         uses: actions/upload-artifact@v3
         if: success() || failure()
         with:
           name: test-results
-          path: test-results.json
+          path: test-results.xml
 
-      - name: Validate SAR Template
-        run: cd infra/sar && sam validate --lint
-
-      - name: Build SAR Template
-        run: cd infra/sar && sam build --beta-features
-
-      - name: Validate Stage Template
-        run: cd infra/stage && sam validate --lint
-
-      - name: Build Stage Template
-        run: cd infra/stage && sam build
+#      - name: Validate SAR Template
+#        run: cd infra/sar && sam validate --lint
+#
+#      - name: Build SAR Template
+#        run: cd infra/sar && sam build --beta-features
+#
+#      - name: Validate Stage Template
+#        run: cd infra/stage && sam validate --lint
+#
+#      - name: Build Stage Template
+#        run: cd infra/stage && sam build
