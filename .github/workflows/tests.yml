@@ -19,7 +19,7 @@ jobs:
 
       - name: Cargo Test
         run: |
-          git config --global url."https://${{ secrets.GITHUB_TOKEN }}@github.com".insteadOf https://github.com
+          git config --global url."https://${{ secrets.GH_PROJECT_PAT }}@github.com".insteadOf https://github.com
           cargo test --message-format json,json-diagnostic-short,json-diagnostic-rendered-ansi,json-render-diagnostics --quiet > test-results.json
           sed -i '/^running/,/^test result/d' test-results.json
 

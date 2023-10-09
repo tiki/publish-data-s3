@@ -1,5 +1,5 @@
 [package]
-name = "ingest-s3"
+name = "publish-data-s3"
 version = "0.0.1"
 edition = "2021"
 
