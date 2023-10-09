@@ -5,12 +5,12 @@ on:
     types:
       - completed
 jobs:
-  json:
+  junit:
     runs-on: ubuntu-latest
     steps:
       - uses: dorny/test-reporter@v1
         with:
           artifact: test-results
-          name: JSON Tests
-          path: '*.json'
-          reporter: mocha-json
+          name: JUnit Tests
+          path: '*.xml'
+          reporter: java-junit
