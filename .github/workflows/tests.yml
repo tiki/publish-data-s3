@@ -17,6 +17,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2
+
+      - name: Setup Cargo Lambda
+        uses: zerj9/setup-cargo-lambda@v0.1.0
+
       - name: Cargo Test
         run: |
           git config --global url."https://${{ secrets.GH_PROJECT_PAT }}@github.com".insteadOf https://github.com
