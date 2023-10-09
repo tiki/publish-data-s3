@@ -1,15 +1,16 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Ingest - S3 SQS Queue
+Description: Publish Data S3 Staging
 
 Parameters:
-  QueueName:
-    Type: String
-    Default: ingest-s3
-    Description: The name of the s3 notifications Queue.
   BucketName:
     Type: String
-    Description: The name the bucket to allow messages from.
+    Default: mytiki-publish
+    Description: Enter the S3 bucket name for staging.
+  QueueName:
+    Type: String
+    Default: publish-data-s3
+    Description: The name of the s3 notifications Queue.
 
 Resources:
   Queue:
@@ -30,12 +31,17 @@ Resources:
             Resource: !GetAtt Queue.Arn
             Condition:
               ArnLike:
-                aws:SourceArn: !Sub "arn:aws:s3:::${BucketName}"
+                aws:SourceArn: !Sub arn:aws:s3:::${BucketName}
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
       Queues:
         - !Ref Queue
 
-Outputs:
-  Arn:
-    Value: !GetAtt Queue.Arn
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      NotificationConfiguration:
+        QueueConfigurations:
+          - Event: s3:ObjectCreated:*
+            Queue: !GetAtt Queue.Arn

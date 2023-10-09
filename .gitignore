@@ -25,4 +25,4 @@ node_modules
 .dev.vars
 
 # Test Reports
-reports
+test-results.json

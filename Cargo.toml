@@ -19,10 +19,10 @@ async-compression = { version = "0.4.2", features = ["tokio", "gzip"] }
 bytes = "1.5.0"
 csv = "1.2.2"
 async-trait = "0.1.73"
-tiki-private-ingest = { git = "https://github.com/tiki/private", tag = "ingest/0.4.0", features = ["dummy"]  }
+tiki-private-ingest = { git = "https://github.com/tiki/private", tag = "ingest/0.5.1", features = ["dummy"]  }
 futures = "0.3.28"
 uuid = { version = "1.4.1", features = ["v4"] }
-parquet = { version = "46.0.0", features = [] }
+parquet = { version = "47.0.0", features = [] }
 
 [dev-dependencies]
 tokio-test = "0.4.3"
