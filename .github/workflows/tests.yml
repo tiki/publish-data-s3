@@ -34,7 +34,7 @@ jobs:
         run: cd infra/sar && sam validate --lint
 
       - name: Build SAR Template
-        run: cd infra/sar && sam build
+        run: cd infra/sar && sam build --beta-features
 
       - name: Validate Stage Template
         run: cd infra/stage && sam validate --lint
