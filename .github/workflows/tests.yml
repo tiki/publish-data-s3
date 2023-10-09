@@ -1,0 +1,42 @@
+name: Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cargo Test
+        run: |
+          cargo test --message-format json,json-diagnostic-short,json-diagnostic-rendered-ansi,json-render-diagnostics --quiet > test-results.json
+          sed -i '/^running/,/^test result/d' test-results.json
+
+      - name: Upload Results
+        uses: actions/upload-artifact@v3
+        if: success() || failure()
+        with:
+          name: test-results
+          path: test-results.json
+
+      - name: Validate SAR Template
+        run: cd infra/sar && sam validate --lint
+
+      - name: Build SAR Template
+        run: cd infra/sar && sam build
+
+      - name: Validate Stage Template
+        run: cd infra/stage && sam validate --lint
+
+      - name: Build Stage Template
+        run: cd infra/stage && sam build
