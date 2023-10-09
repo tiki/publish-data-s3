@@ -11,6 +11,6 @@ jobs:
       - uses: dorny/test-reporter@v1
         with:
           artifact: test-results
-          name: JSON Tests
-          path: '*.json'
-          reporter: json
+          name: JUnit Tests
+          path: '*.xml'
+          reporter: java-junit
