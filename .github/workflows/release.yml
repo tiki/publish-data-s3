@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  pull_request:
+    branches:
+      - main
+#    types:
+#      - closed
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  Deploy:
+    #if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/')
+    runs-on: ubuntu-latest
+    environment: Production
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubDeployBase
+          role-session-name: ${{ vars.SESSION_NAME }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: SAM Role
+        run: cd infra/role && sam build && sam package && sam deploy
+
+      - name: AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubDeployPublishDataS3
+          role-session-name: ${{ vars.SESSION_NAME }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: SAM Stage
+        run: cd infra/stage && sam build && sam package && sam deploy
+
+      - name: SAM Publish
+        run: cd infra/sar && sam build && sam package --output-template-file packaged.yaml && sam publish --template packaged.yaml
+
+      - name: Get Version
+        id: version
+        run: |
+          export CURRENT_VERSION=$(grep -m 1 'version = "' Cargo.toml | awk -F '"' '{print $2}')
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.version.outputs.current }}
