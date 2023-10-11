@@ -1,9 +1,9 @@
 version = 0.1
 
 [default.global.parameters]
-stack_name = "ingest-s3-shared"
+stack_name = "publish-data-s3-sar"
 s3_bucket = "mytiki-sam-deploy"
-s3_prefix = "ingest/s3/github"
+s3_prefix = "publish/data/s3/sar"
 region = "us-east-2"
 
 [default.deploy.parameters]
@@ -13,6 +13,4 @@ capabilities = [
     "CAPABILITY_AUTO_EXPAND"
 ]
 image_repositories = []
-parameter_overrides = [
-    "BucketName=mytiki-ingest-staging-raw"
-]
+parameter_overrides = []

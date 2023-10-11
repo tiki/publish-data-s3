@@ -1,0 +1,53 @@
+name: Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2
+
+      - name: Setup Cargo Lambda
+        uses: zerj9/setup-cargo-lambda@v0.1.0
+
+      - name: Setup Project
+        run: |
+          git config --global url."https://${{ secrets.GH_PROJECT_PAT }}@github.com".insteadOf https://github.com
+          rustup default nightly
+          cargo install cargo2junit
+
+      - name: Cargo Test
+        run: |
+          cargo test -- -Z unstable-options --format json --report-time | cargo2junit > test-results.xml
+
+      - name: Upload Results
+        uses: actions/upload-artifact@v3
+        if: success() || failure()
+        with:
+          name: test-results
+          path: test-results.xml
+
+      - name: Validate SAR Template
+        run: cd infra/sar && sam validate --lint
+
+      - name: Build SAR Template
+        run: cd infra/sar && sam build --beta-features
+
+      - name: Validate Stage Template
+        run: cd infra/stage && sam validate --lint
+
+      - name: Build Stage Template
+        run: cd infra/stage && sam build

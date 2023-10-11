@@ -25,4 +25,7 @@ node_modules
 .dev.vars
 
 # Test Reports
-reports
+test-results.xml
+
+# AWS SAM
+.aws-sam

@@ -1,19 +1,17 @@
 version = 0.1
 
 [default.global.parameters]
+stack_name = "publish-data-s3-role"
 s3_bucket = "mytiki-sam-deploy"
-s3_prefix = "ingest/s3/lambda"
+s3_prefix = "publish/data/s3/role"
 region = "us-east-2"
 
 [default.deploy.parameters]
 confirm_changeset = false
 capabilities = [
     "CAPABILITY_IAM",
+    "CAPABILITY_NAMED_IAM",
     "CAPABILITY_AUTO_EXPAND"
 ]
-
-[default.build.parameters]
-beta_features = true
-
-[default.sync.parameters]
-beta_features = true
+image_repositories = []
+parameter_overrides = []

@@ -34,9 +34,13 @@ jobs:
           token: ${{ github.token }}
           branch: ${{ steps.getpr.outputs.branch }}
 
-      - name: Set Version
+      - name: Set Cargo Version
         run: |
           sed -i '3 s/version = *.*.*/version = "${{ steps.semver.outputs.nextStrict }}"/' Cargo.toml
+
+      - name: Set SAR Version
+        run: |
+          sed -i 's/SemanticVersion: .*/SemanticVersion: ${{ steps.semver.outputs.nextStrict }}/' infra/sar/template.yml
 
       - name: Commit Changes
         continue-on-error: true
@@ -46,6 +50,7 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "GH Action"
           git add Cargo.toml
+          git add infra/sar/template.yml
           git commit -m 'version bump'
           git push
 

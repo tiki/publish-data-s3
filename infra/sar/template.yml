@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Publish Data S3 Function
+
+Parameters:
+  QueueStaging:
+    Type: String
+    Description: Arn for the staging event queue
+  QueueMetadata:
+    Type: String
+    Description: Enter the name of the Metadata Queue.
+  StageBucket:
+    Type: String
+    Default: mytiki-publish
+    Description: Enter the name of the staging bucket.
+  StageCompression:
+    Type: String
+    Default: none
+    Description: Enter the staging file compression (gzip, none).
+  StageFileType:
+    Type: String
+    Default: csv
+    Description: Enter the source file type (csv).
+  DestBucket:
+    Type: String
+    Description: Enter the name of the output file bucket.
+  DestTable:
+    Type: String
+    Description: Enter the table name for the dataset.
+
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: publish-data-s3
+    Description: Publish Data S3
+    Author: tiki
+    SpdxLicenseId: MIT
+    LicenseUrl: ../../LICENSE
+    ReadmeUrl: ../../README.md
+    Labels: ['publish']
+    HomePageUrl: https://github.com/tiki/publish-data-s3
+    SemanticVersion: 0.0.2
+    SourceCodeUrl: https://github.com/tiki/publish-data-s3
+
+Resources:
+  Function:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: rust-cargolambda
+    Properties:
+      CodeUri: ../..
+      Handler: bootstrap
+      Runtime: provided.al2
+      MemorySize: 512
+      Timeout: 20
+      Architectures:
+        - arm64
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Enabled: true
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+            BatchSize: 10
+            Queue: !Ref QueueStaging
+      Environment:
+        Variables:
+          TIKI_REGION: !Ref AWS::Region
+          TIKI_BUCKET: !Ref DestBucket
+          TIKI_TABLE: !Ref DestTable
+          TIKI_FILE_TYPE: !Ref StageFileType
+          TIKI_COMPRESSION: !Ref StageCompression
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref StageBucket
+        - S3CrudPolicy:
+            BucketName: !Ref DestBucket
+        - SQSSendMessagePolicy:
+            QueueName: !Ref QueueMetadata
