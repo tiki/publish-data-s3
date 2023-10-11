@@ -34,7 +34,7 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: SAM Role
-        run: cd infra/role && sam build && sam package && sam deploy
+        run: cd infra/role && sam build && sam package && sam deploy --no-fail-on-empty-changeset
 
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -44,7 +44,7 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: SAM Stage
-        run: cd infra/stage && sam build && sam package && sam deploy
+        run: cd infra/stage && sam build && sam package && sam deploy --no-fail-on-empty-changeset
 
       - name: SAM Publish
         run: cd infra/sar && sam build --beta-features && sam package --output-template-file packaged.yaml && sam publish --template packaged.yaml
