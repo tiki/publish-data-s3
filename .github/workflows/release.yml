@@ -29,6 +29,10 @@ jobs:
       - name: Setup Cargo Lambda
         uses: zerj9/setup-cargo-lambda@v0.1.0
 
+      - name: Setup Project
+        run: |
+          git config --global url."https://${{ secrets.GH_PROJECT_PAT }}@github.com".insteadOf https://github.com
+
       - name: SetVars
         run: |
           sed -i 's/${AWS::AccountId}/${{ secrets.AWS_ACCOUNT_ID }}/' infra/role/template.yml
