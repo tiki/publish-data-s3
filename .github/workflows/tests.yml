@@ -40,14 +40,22 @@ jobs:
           name: test-results
           path: test-results.xml
 
-#      - name: Validate SAR Template
-#        run: cd infra/sar && sam validate --lint
-#
-#      - name: Build SAR Template
-#        run: cd infra/sar && sam build --beta-features
-#
-#      - name: Validate Stage Template
-#        run: cd infra/stage && sam validate --lint
-#
-#      - name: Build Stage Template
-#        run: cd infra/stage && sam build
+      - name: Validate SAR Template
+        run: |
+          cd infra/sar
+          sam validate --lint
+
+      - name: Build SAR Template
+        run: |
+          cd infra/sar
+          sam build --beta-features
+
+      - name: Validate Stage Template
+        run: |
+          cd infra/stage
+          sam validate --lint
+
+      - name: Build Stage Template
+        run: |
+          cd infra/stage
+          sam build

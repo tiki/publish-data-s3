@@ -4,15 +4,14 @@ Description: Publish Data S3 Function
 
 Parameters:
   QueueStaging:
-    Description: Arn for the staging event queue
-#    Default:
     Type: String
+    Description: Arn for the staging event queue
   QueueMetadata:
     Type: String
-#    Default:
     Description: Enter the name of the Metadata Queue.
   StageBucket:
     Type: String
+    Default: mytiki-publish
     Description: Enter the name of the staging bucket.
   StageCompression:
     Type: String
