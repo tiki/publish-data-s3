@@ -38,7 +38,7 @@ Metadata:
     ReadmeUrl: ../../README.md
     Labels: ['publish']
     HomePageUrl: https://github.com/tiki/publish-data-s3
-    SemanticVersion: 0.0.1
+    SemanticVersion: 0.0.2
     SourceCodeUrl: https://github.com/tiki/publish-data-s3
 
 Resources:
