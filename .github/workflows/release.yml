@@ -47,7 +47,7 @@ jobs:
         run: cd infra/stage && sam build && sam package && sam deploy
 
       - name: SAM Publish
-        run: cd infra/sar && sam build && sam package --output-template-file packaged.yaml && sam publish --template packaged.yaml
+        run: cd infra/sar && sam build --beta-features && sam package --output-template-file packaged.yaml && sam publish --template packaged.yaml
 
       - name: Get Version
         id: version
