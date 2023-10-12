@@ -14,7 +14,7 @@ use parquet::{
     schema::types::Type,
 };
 use std::error::Error;
-use tiki_private_ingest::schema::generic;
+use private_publish_data_s3::schema::generic;
 use tokio::io::AsyncBufReadExt;
 use tokio_util::io::StreamReader;
 use uuid::Uuid;

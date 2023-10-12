@@ -28,19 +28,6 @@ Parameters:
     Type: String
     Description: Enter the table name for the dataset.
 
-Metadata:
-  AWS::ServerlessRepo::Application:
-    Name: publish-data-s3
-    Description: Publish Data S3
-    Author: tiki
-    SpdxLicenseId: MIT
-    LicenseUrl: ../../LICENSE
-    ReadmeUrl: ../../README.md
-    Labels: ['publish']
-    HomePageUrl: https://github.com/tiki/publish-data-s3
-    SemanticVersion: 0.0.2
-    SourceCodeUrl: https://github.com/tiki/publish-data-s3
-
 Resources:
   Function:
     Type: AWS::Serverless::Function

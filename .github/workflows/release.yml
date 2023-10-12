@@ -4,8 +4,8 @@ on:
   pull_request:
     branches:
       - main
-    types:
-      - closed
+#    types:
+#      - closed
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   Deploy:
-    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/')
+#    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/')
     runs-on: ubuntu-latest
     environment: Production
     permissions:
@@ -56,9 +56,6 @@ jobs:
 
       - name: SAM Stage
         run: cd infra/stage && sam build && sam package && sam deploy --no-fail-on-empty-changeset
-
-      - name: SAM Publish
-        run: cd infra/sar && sam build --beta-features && sam package --output-template-file packaged.yaml && sam publish --template packaged.yaml
 
       - name: Get Version
         id: version
