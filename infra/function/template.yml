@@ -15,12 +15,17 @@ Parameters:
     Description: Enter the name of the staging bucket.
   StageCompression:
     Type: String
-    Default: none
     Description: Enter the staging file compression (gzip, none).
   StageFileType:
     Type: String
     Default: csv
     Description: Enter the source file type (csv).
+  StagePrefix:
+    Type: String
+    Description: Enter the key prefix to filter events by (wildcards allowed)
+  StageSuffix:
+    Type: String
+    Description: Enter the key suffix to filter events by (wildcards allowed)
   DestBucket:
     Type: String
     Description: Enter the name of the output file bucket.
@@ -64,3 +69,13 @@ Resources:
             BucketName: !Ref DestBucket
         - SQSSendMessagePolicy:
             QueueName: !Ref QueueMetadata
+
+  EventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern: !Sub "{\"source\":[\"aws.s3\"],\"detail-type\":[\"Object Created\"],\"detail\":{\"bucket\":{\"name\":[\"mytiki-publish\"]},\"object\":{\"key\":[{\"prefix\":\"${StagePrefix}\"},{\"suffix\":\"${StageSuffix}\"}]}}}"
+      Name: Ref! DestTable
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt Function.Arn
+          Id: 1
