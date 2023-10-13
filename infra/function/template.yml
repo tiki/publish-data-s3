@@ -3,9 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: Publish Data S3 Function
 
 Parameters:
-  QueueStaging:
-    Type: String
-    Description: Arn for the staging event queue
   QueueMetadata:
     Type: String
     Description: Enter the name of the Metadata Queue.
@@ -15,12 +12,17 @@ Parameters:
     Description: Enter the name of the staging bucket.
   StageCompression:
     Type: String
-    Default: none
     Description: Enter the staging file compression (gzip, none).
   StageFileType:
     Type: String
     Default: csv
     Description: Enter the source file type (csv).
+  StagePrefix:
+    Type: String
+    Description: Enter the key prefix to filter events by (wildcards allowed)
+  StageSuffix:
+    Type: String
+    Description: Enter the key suffix to filter events by (wildcards allowed)
   DestBucket:
     Type: String
     Description: Enter the name of the output file bucket.
@@ -42,14 +44,12 @@ Resources:
       Architectures:
         - arm64
       Events:
-        SQSEvent:
-          Type: SQS
+        EventBridgeRule:
+          Type: EventBridgeRule
           Properties:
-            Enabled: true
-            FunctionResponseTypes:
-              - ReportBatchItemFailures
-            BatchSize: 10
-            Queue: !Ref QueueStaging
+            Pattern: !Sub "{\"source\":[\"aws.s3\"],\"detail-type\":[\"Object Created\"],\"detail\":{\"bucket\":{\"name\":[\"mytiki-publish\"]},\"object\":{\"key\":[{\"prefix\":\"${StagePrefix}\"},{\"suffix\":\"${StageSuffix}\"}]}}}"
+            RuleName: Ref! DestTable
+            State: ENABLED
       Environment:
         Variables:
           TIKI_REGION: !Ref AWS::Region
