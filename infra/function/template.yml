@@ -48,7 +48,7 @@ Resources:
           Type: EventBridgeRule
           Properties:
             Pattern: !Sub "{\"source\":[\"aws.s3\"],\"detail-type\":[\"Object Created\"],\"detail\":{\"bucket\":{\"name\":[\"mytiki-publish\"]},\"object\":{\"key\":[{\"prefix\":\"${StagePrefix}\"},{\"suffix\":\"${StageSuffix}\"}]}}}"
-            RuleName: Ref! DestTable
+            RuleName: !Ref DestTable
             State: ENABLED
       Environment:
         Variables:
