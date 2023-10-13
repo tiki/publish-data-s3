@@ -3,9 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: Publish Data S3 Function
 
 Parameters:
-  QueueStaging:
-    Type: String
-    Description: Arn for the staging event queue
   QueueMetadata:
     Type: String
     Description: Enter the name of the Metadata Queue.
@@ -47,14 +44,12 @@ Resources:
       Architectures:
         - arm64
       Events:
-        SQSEvent:
-          Type: SQS
+        EventBridgeRule:
+          Type: EventBridgeRule
           Properties:
-            Enabled: true
-            FunctionResponseTypes:
-              - ReportBatchItemFailures
-            BatchSize: 10
-            Queue: !Ref QueueStaging
+            Pattern: !Sub "{\"source\":[\"aws.s3\"],\"detail-type\":[\"Object Created\"],\"detail\":{\"bucket\":{\"name\":[\"mytiki-publish\"]},\"object\":{\"key\":[{\"prefix\":\"${StagePrefix}\"},{\"suffix\":\"${StageSuffix}\"}]}}}"
+            RuleName: Ref! DestTable
+            State: ENABLED
       Environment:
         Variables:
           TIKI_REGION: !Ref AWS::Region
@@ -69,13 +64,3 @@ Resources:
             BucketName: !Ref DestBucket
         - SQSSendMessagePolicy:
             QueueName: !Ref QueueMetadata
-
-  EventRule:
-    Type: AWS::Events::Rule
-    Properties:
-      EventPattern: !Sub "{\"source\":[\"aws.s3\"],\"detail-type\":[\"Object Created\"],\"detail\":{\"bucket\":{\"name\":[\"mytiki-publish\"]},\"object\":{\"key\":[{\"prefix\":\"${StagePrefix}\"},{\"suffix\":\"${StageSuffix}\"}]}}}"
-      Name: Ref! DestTable
-      State: ENABLED
-      Targets:
-        - Arn: !GetAtt Function.Arn
-          Id: 1
