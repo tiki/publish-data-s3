@@ -45,20 +45,9 @@ Resources:
             Resource: "*"
           - Effect: Allow
             Action:
-              - serverlessrepo:*
-            Resource: !Sub arn:aws:serverlessrepo:${AWS::Region}:${AWS::AccountId}:applications/publish-data-s3
-          - Effect: Allow
-            Action:
               - s3:PutObject
               - s3:GetObject
             Resource: !Sub arn:aws:s3:::mytiki-sam-deploy/*
-          - Effect: Allow
-            Action:
-              - sqs:CreateQueue
-              - sqs:GetQueueAttributes
-              - sqs:SetQueueAttributes
-              - sqs:TagQueue
-            Resource: !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:*
           - Effect: Allow
             Action:
               - s3:CreateBucket
