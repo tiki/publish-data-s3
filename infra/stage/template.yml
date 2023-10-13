@@ -7,41 +7,12 @@ Parameters:
     Type: String
     Default: mytiki-publish
     Description: Enter the S3 bucket name for staging.
-  QueueName:
-    Type: String
-    Default: publish-data-s3
-    Description: The name of the s3 notifications Queue.
 
 Resources:
-  Queue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Ref QueueName
-
-  QueuePolicy:
-    Type: AWS::SQS::QueuePolicy
-    Properties:
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: s3.amazonaws.com
-            Action: SQS:SendMessage
-            Resource: !GetAtt Queue.Arn
-            Condition:
-              ArnLike:
-                aws:SourceArn: !Sub arn:aws:s3:::${BucketName}
-              StringEquals:
-                aws:SourceAccount: !Ref AWS::AccountId
-      Queues:
-        - !Ref Queue
-
   Bucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref BucketName
       NotificationConfiguration:
-        QueueConfigurations:
-          - Event: s3:ObjectCreated:*
-            Queue: !GetAtt Queue.Arn
+        EventBridgeConfiguration:
+          EventBridgeEnabled: true
