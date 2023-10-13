@@ -20,7 +20,7 @@ pub async fn handle(event: LambdaEvent<CloudWatchEvent<S3Event>>) -> Result<(), 
         .for_region("us-east-2")
         .await;
 
-    let event = event.payload.detail?;
+    let event = event.payload.detail.ok_or(Error::from("No payload. Skipping"))?;
     for s3_record in &event.records {
         if s3_record.s3.bucket.name.is_none() || s3_record.s3.object.key.is_none() {
             tracing::error!("Invalid payload - no s3 bucket or key. Skipping");
