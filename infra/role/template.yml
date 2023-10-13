@@ -53,12 +53,6 @@ Resources:
               - s3:CreateBucket
               - s3:PutBucketNotification
             Resource: arn:aws:s3:::*
-          - Effect: Allow
-            Action:
-              - events:DescribeRule
-              - events:PutRule
-              - events:EnableRule
-            Resource: arn:aws:events:${AWS::Region}:${AWS::AccountId}:rule/*
 
 
 
