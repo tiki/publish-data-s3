@@ -14,7 +14,7 @@ pub struct Client {
 impl Client {
     pub async fn new(region: &str) -> Self {
         let config = from_env()
-            .region(aws_sdk_s3::config::Region::new(String::from(region)))
+            .region(aws_sdk_sqs::config::Region::new(String::from(region)))
             .load()
             .await;
         Client {

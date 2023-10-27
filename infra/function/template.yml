@@ -42,7 +42,7 @@ Resources:
       MemorySize: 512
       Timeout: 20
       Architectures:
-        - arm64
+        - x86_64
       Events:
         EventBridgeRule:
           Type: EventBridgeRule
@@ -57,10 +57,22 @@ Resources:
           TIKI_TABLE: !Ref DestTable
           TIKI_FILE_TYPE: !Ref StageFileType
           TIKI_COMPRESSION: !Ref StageCompression
+          TIKI_QUEUE: !Sub https://sqs.${AWS::Region}.amazonaws.com/${AWS::AccountId}/${QueueMetadata}
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref StageBucket
-        - S3CrudPolicy:
-            BucketName: !Ref DestBucket
         - SQSSendMessagePolicy:
             QueueName: !Ref QueueMetadata
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:ListBucket
+                - s3:GetBucketLocation
+                - s3:GetObjectVersion
+                - s3:GetObjectAttributes
+                - s3:PutObject
+              Resource:
+                - !Sub "arn:aws:s3:::${DestBucket}"
+                - !Sub "arn:aws:s3:::${DestBucket}/*"
