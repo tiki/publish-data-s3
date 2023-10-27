@@ -39,7 +39,7 @@ Resources:
       CodeUri: ../..
       Handler: bootstrap
       Runtime: provided.al2
-      MemorySize: 512
+      MemorySize: 1024
       Timeout: 900
       Architectures:
         - x86_64
