@@ -28,7 +28,7 @@ impl Config {
             file_type: FileFormat::CSV,
             region: String::from("us-east-2"),
             queue: String::new(),
-            max_rows: 100000,
+            max_rows: 1000000,
         }
     }
 
