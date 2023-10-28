@@ -17,12 +17,9 @@ Parameters:
     Type: String
     Default: csv
     Description: Enter the source file type (csv).
-  StagePrefix:
+  StageWildcard:
     Type: String
-    Description: Enter the key prefix to filter events by (wildcards allowed)
-  StageSuffix:
-    Type: String
-    Description: Enter the key suffix to filter events by (wildcards allowed)
+    Description: Enter the wildcard syntax to filter events.
   DestBucket:
     Type: String
     Description: Enter the name of the output file bucket.
@@ -47,7 +44,7 @@ Resources:
         EventBridgeRule:
           Type: EventBridgeRule
           Properties:
-            Pattern: !Sub "{\"source\":[\"aws.s3\"],\"detail-type\":[\"Object Created\"],\"detail\":{\"bucket\":{\"name\":[\"mytiki-publish\"]},\"object\":{\"key\":[{\"prefix\":\"${StagePrefix}\"},{\"suffix\":\"${StageSuffix}\"}]}}}"
+            Pattern: !Sub "{\"source\":[\"aws.s3\"],\"detail-type\":[\"Object Created\"],\"detail\":{\"bucket\":{\"name\":[\"mytiki-publish\"]},\"object\":{\"key\":[{\"wildcard\":\"${StageWildcard}\"}]}}}"
             RuleName: !Ref DestTable
             State: ENABLED
       Environment:
