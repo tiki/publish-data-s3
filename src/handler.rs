@@ -14,6 +14,7 @@ use lambda_runtime::{Error, LambdaEvent};
 use processor::Processor;
 
 pub async fn handle(event: LambdaEvent<CloudWatchEvent<S3Entity>>) -> Result<(), Error> {
+    tracing::debug!("{:?}", event);
     let processor = &Processor::new()
         .from_env()
         .auto_schema()
